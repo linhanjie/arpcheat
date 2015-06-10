@@ -1,0 +1,40 @@
+/*
+
+	林汉杰 于 2008年9月23日
+
+*/
+介绍:
+一个arp欺骗并且监听的小程序.
+
+大致环境:
+默认网关ip:192.168.1.1(d-link路由器)
+我的ip:192.168.1.9(linux)(redhat 9 2.4 kernel)
+被攻击者ip:192.168.1.8(windows)
+
+攻击流程:
+用我的linux mac地址污染windows的arp缓存的路由器条目.
+1.windows发到路由器(192.168.1.1)的数据包都被我接收了.(路由器未收到)
+2.我利用pcap监听到该包,做适当修改(目标mac地址改为正真路由器mac地址, 源ip改为我的ip地址, 重新计算ip校验和, tcp或者udp校验和),然后将该包发给路由器
+3.我利用pcap监听到目标地址成功响应我的请求,将数据返回给我(因为发给他的地址是我的ip地址).做适当修改(目标mac改成windows的mac, 目的ip改为windows的ip, 重新计算校验和),然后将该返回包再发送给windows
+
+需要辅助环境:
+阻止linux正常的收发处理,我用netfilter过滤掉所有收到的外来发给本机linux的数据包
+
+
+文件:
+arpcheat.c
+进行欺骗的主程序
+其中my_ip, my_mac, gateway_ip, gateway_mac, attack_ip要根据需要修改,然后重新编译
+gcc arpcheat.c -lpcap -lpthread
+
+myfilter.c(2.6内核要改下)
+我的netfilter过滤模块
+gcc -c myfitler.c -D__KERNEL__ -DMODULE -I/usr/src/linux-2.4/include
+insmod myfilter.o添加模块
+
+
+程序可以走通,难免有很多不足和错误,敬请交流:)
+
+我的Email: linhanjie123@163.com
+我的qq:    110024218
+
